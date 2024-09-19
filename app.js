@@ -7,7 +7,7 @@ const auth = require("./middlewares/auth");
 
 const authRouter = require("./routes/api/auth");
 const usersRouter = require("./routes/api/users");
-const transactionRouter = require("./routes/api/transactions");
+const transactionsRouter = require("./routes/api/transactions");
 
 const app = express();
 
@@ -23,7 +23,7 @@ require("./config/config-passport");
 app.use("/auth", authRouter);
 app.use(auth);
 app.use("/user", usersRouter);
-app.use("/transaction", transactionRouter);
+app.use("/transaction", transactionsRouter);
 
 app.use((_req, res, _next) => {
   res.status(404).json({ message: "Not found" });

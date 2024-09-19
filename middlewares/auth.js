@@ -12,6 +12,7 @@ const auth = (req, res, next) => {
         data: "Unauthorized",
       });
     }
+
     req.user = user;
     const authHeader = req.headers["authorization"];
     const token = authHeader.substring(7, authHeader.length);

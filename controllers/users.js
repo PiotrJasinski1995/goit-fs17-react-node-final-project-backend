@@ -17,10 +17,10 @@ const getCurrent = async (req, res) => {
 };
 
 const updateBalance = async (req, res) => {
-  const balance = req.body.balance;
+  const newBalance = req.body.balance;
   const id = req.user.id;
 
-  if (!balance)
+  if (!newBalance)
     return res.status(400).json({
       status: "failure",
       code: 400,
@@ -29,16 +29,20 @@ const updateBalance = async (req, res) => {
     });
 
   try {
-    const user = await usersService.updateBalance(id, balance);
+    const user = await usersService.updateBalance(id, newBalance);
 
-    if (user) {
-      return res.json({ status: "success", code: 200, data: { balance } });
-    } else {
+    if (!user) {
       return res.json({ status: "failure", code: 404, message: "Not found" });
     }
+
+    return res.json({ status: "success", code: 200, data: { newBalance } });
   } catch (error) {
     if (error.name === "CastError") {
-      res.json({ status: "failure", code: 404, message: "Invalid data format" });
+      res.json({
+        status: "failure",
+        code: 404,
+        message: "Invalid data",
+      });
     } else {
       next(error);
     }

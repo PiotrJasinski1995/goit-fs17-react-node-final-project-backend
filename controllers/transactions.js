@@ -13,15 +13,16 @@ const addTransaction = async (req, res, next) => {
   const transactionType = req.transactionType;
   const activeUser = req.user;
   const transactionBody = req.body;
+  const amount = parseInt(transactionBody.amount);
   const oldBalance = parseInt(activeUser.balance);
   let newBalance = 0;
 
   switch (transactionType) {
     case "income":
-      newBalance = oldBalance + parseInt(transactionBody.amount);
+      newBalance = oldBalance + amount;
       break;
     case "expense":
-      newBalance = oldBalance - parseInt(transactionBody.amount);
+      newBalance = oldBalance - amount;
       break;
     default:
       return res.status(403).json({
@@ -41,13 +42,17 @@ const addTransaction = async (req, res, next) => {
     );
 
     if (!newTransaction) {
-      return res.json({ status: "failure", code: 404, message: "Not found" });
+      return res
+        .status(404)
+        .json({ status: "failure", code: 404, message: "Not found" });
     }
 
     const user = await usersService.updateBalance(req.user._id, newBalance);
 
     if (!user) {
-      return res.json({ status: "failure", code: 404, message: "Not found" });
+      return res
+        .status(404)
+        .json({ status: "failure", code: 404, message: "Not found" });
     }
 
     const { description, amount, date, category, id } = newTransaction;
@@ -56,16 +61,16 @@ const addTransaction = async (req, res, next) => {
 
     return res.status(201).json({
       status: "success",
-      code: 200,
+      code: 201,
       message: "Transaction created",
       data,
     });
   } catch (error) {
     if (error.name === "CastError") {
-      res.json({
+      res.status(404).json({
         status: "failure",
         code: 404,
-        message: "Invalid data format",
+        message: "Invalid data",
       });
     } else {
       next(error);
@@ -83,12 +88,68 @@ const getTransaction = async (req, res, _next) => {
   });
 };
 
-const deleteTransaction = async function (req, res, _next) {
-  return res.status(200).json({
-    status: "success",
-    code: 200,
-    message: "Transaction deleted successfully",
-  });
+const deleteTransaction = async function (req, res, next) {
+  const { transactionId } = req.params;
+  const activeUser = req.user;
+
+  console.log(transactionId);
+
+  try {
+    const transaction = await transactionsService.deleteTransaction(
+      transactionId
+    );
+
+    if (!transaction) {
+      return res
+        .status(404)
+        .json({ status: "failure", code: 404, message: "Not found" });
+    }
+
+    const transactionType = transaction.transactionType;
+    const amount = parseInt(transaction.amount);
+    const oldBalance = parseInt(activeUser.balance);
+    let newBalance = 0;
+
+    switch (transactionType) {
+      case "income":
+        newBalance = oldBalance - parseInt(amount);
+        break;
+      case "expense":
+        newBalance = oldBalance + parseInt(amount);
+        break;
+      default:
+        return res.status(403).json({
+          status: "failure",
+          code: 403,
+          message: "Wrong transaction type",
+          data: "Forbidden",
+        });
+    }
+
+    const user = await usersService.updateBalance(req.user._id, newBalance);
+
+    if (!user) {
+      return res.json({ status: "failure", code: 404, message: "Not found" });
+    }
+
+    return res.json({
+      status: "success",
+      code: 200,
+      message: "Transaction deleted",
+      data: { newBalance },
+    });
+  } catch (error) {
+    if (error.name === "CastError") {
+      res.json({
+        status: "failure",
+        code: 404,
+        message: "Invalid data",
+      });
+    } else {
+      console.error(error);
+      next(error);
+    }
+  }
 };
 
 const getCategories = async function (req, res, _next) {
