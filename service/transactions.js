@@ -4,4 +4,8 @@ const addTransaction = (body) => {
   return Transaction.create(body);
 };
 
-module.exports = { addTransaction };
+const deleteTransaction = (id) => {
+  return Transaction.findByIdAndDelete({ _id: id });
+};
+
+module.exports = { addTransaction, deleteTransaction };
