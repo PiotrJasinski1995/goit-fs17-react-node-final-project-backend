@@ -78,7 +78,7 @@ const addTransaction = async(req, res, next) => {
     }
 };
 
-function calculateMonthlySums(transactions) {
+function calculateMonthlySums(transactions, filterTransactionType) {
     const monthlySums = {
         January: "N/A",
         February: "N/A",
@@ -103,9 +103,7 @@ function calculateMonthlySums(transactions) {
         if (!monthlyTotals[monthName]) {
             monthlyTotals[monthName] = 0;
         }
-        if (transactionType === "expense") {
-            monthlyTotals[monthName] -= amount;
-        } else if (transactionType === "income") {
+        if (transactionType === filterTransactionType) {
             monthlyTotals[monthName] += amount;
         }
     });
@@ -119,14 +117,42 @@ function calculateMonthlySums(transactions) {
 }
 
 
-const getTransaction = async(req, res, _next) => {
+const getExpenseTransaction = async(req, res, _next) => {
     const activeUser = req.user;
 
     try {
-        const userTransactions = await transactionsService.getTransactionByUser(activeUser._id);
+        const userTransactions = await transactionsService.getTransactionByUser(activeUser._id, "expense");
         console.log(userTransactions);
 
-        const raport = calculateMonthlySums(userTransactions);
+        const raport = calculateMonthlySums(userTransactions, "expense");
+
+        console.log(raport);
+        const data = {
+            "expense": userTransactions,
+            "monthStats": raport
+        }
+        return res.status(200).json({
+            status: "success",
+            code: 200,
+            data
+        });
+    } catch (error) {
+        res.status(404).json({
+            status: "failure",
+            code: 404,
+            data: "Invalid user / Invalid session"
+        });
+    }
+};
+
+const getIncomesTransaction = async(req, res, _next) => {
+    const activeUser = req.user;
+
+    try {
+        const userTransactions = await transactionsService.getTransactionByUser(activeUser._id, "income");
+        console.log(userTransactions);
+
+        const raport = calculateMonthlySums(userTransactions, "income");
 
         console.log(raport);
         const data = {
@@ -322,7 +348,8 @@ const getTransactionsDataForPeriod = async(req, res, next) => {
 
 module.exports = {
     addTransaction,
-    getTransaction,
+    getExpenseTransaction,
+    getIncomesTransaction,
     deleteTransaction,
     getCategories,
     getTransactionsDataForPeriod,
