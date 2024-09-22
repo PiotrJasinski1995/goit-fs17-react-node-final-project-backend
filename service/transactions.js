@@ -8,9 +8,9 @@ const deleteTransaction = (id) => {
     return Transaction.findByIdAndDelete({ _id: id });
 };
 
-const getTransactionByUser = async(ownerId) => {
+const getTransactionByUser = async(ownerId, transactionType) => {
     try {
-        const transactions = await Transaction.find({ owner: ownerId });
+        const transactions = await Transaction.find({ owner: ownerId, transactionType });
         return transactions;
     } catch (error) {
         console.error("Error fetching transactions:", error);
