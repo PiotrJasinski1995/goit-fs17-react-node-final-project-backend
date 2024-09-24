@@ -50,6 +50,27 @@ basicSchemaObject = {
       });
       return errors;
     }),
+  description: Joi.string()
+    .pattern(new RegExp(/^.*\S.*$/))
+    .required()
+    .error((errors) => {
+      errors.forEach((err) => {
+        switch (err.code) {
+          case "any.required":
+            err.message = "Missing required field: 'description'";
+            break;
+          case "string.empty":
+            err.message = "Description field cannot be empty";
+            break;
+          case "string.pattern.base":
+            err.message = `Description should have at least one non-white character`;
+            break;
+          default:
+            break;
+        }
+      });
+      return errors;
+    }),
 };
 
 const incomeSchema = Joi.object().keys({
