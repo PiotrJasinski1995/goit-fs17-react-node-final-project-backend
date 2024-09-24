@@ -43,6 +43,7 @@ const transactionSchema = Schema(
     },
     description: {
       type: String,
+      required: [true, "Description field cannot be empty"],
       default: "",
     },
     owner: {
