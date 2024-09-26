@@ -1,6 +1,9 @@
 const Joi = require("joi");
-
 const { expenseEnum, incomeEnum } = require("../../utils/enums");
+
+// Kuba: Extracting category-names for validation
+const expenseCategories = expenseEnum.map((item) => item.name);
+const incomeCategories = incomeEnum.map((item) => item.name);
 
 basicSchemaObject = {
   amount: Joi.number()
@@ -76,7 +79,7 @@ basicSchemaObject = {
 const incomeSchema = Joi.object().keys({
   ...basicSchemaObject,
   category: Joi.string()
-    .valid(...incomeEnum)
+    .valid(...incomeCategories) // Kuba: enums.js was updated with categorie-name and icon-name
     .required()
     .error((errors) => {
       errors.forEach((err) => {
@@ -91,7 +94,9 @@ const incomeSchema = Joi.object().keys({
             err.message = "Category must be a string";
             break;
           case "any.only":
-            err.message = `Category must be one of the given type: [${incomeEnum}]`;
+            err.message = `Category must be one of the given type: [${incomeCategories.join(
+              ", "
+            )}]`;
             break;
           default:
             break;
@@ -104,7 +109,7 @@ const incomeSchema = Joi.object().keys({
 const expenseSchema = Joi.object().keys({
   ...basicSchemaObject,
   category: Joi.string()
-    .valid(...expenseEnum)
+    .valid(...expenseCategories) // Kuba: enums.js was updated with categorie-name and icon-name
     .required()
     .error((errors) => {
       errors.forEach((err) => {
@@ -119,7 +124,9 @@ const expenseSchema = Joi.object().keys({
             err.message = "Category must be a string";
             break;
           case "any.only":
-            err.message = `Category must be one of the given type: [${expenseEnum}]`;
+            err.message = `Category must be one of the given type: [${expenseCategories.join(
+              ", "
+            )}]`;
             break;
           default:
             break;

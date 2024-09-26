@@ -1,6 +1,5 @@
 const usersService = require("../service/users");
 const transactionsService = require("../service/transactions");
-
 const { expenseEnum, incomeEnum, monthNames } = require("../utils/enums");
 
 const addTransaction = async (req, res, next) => {
@@ -72,43 +71,107 @@ const addTransaction = async (req, res, next) => {
   }
 };
 
-function calculateMonthlySums(transactions, filterTransactionType) {
-  const monthlySums = {
-    January: "N/A",
-    February: "N/A",
-    March: "N/A",
-    April: "N/A",
-    May: "N/A",
-    June: "N/A",
-    July: "N/A",
-    August: "N/A",
-    September: "N/A",
-    October: "N/A",
-    November: "N/A",
-    December: "N/A",
+function calculateMonthlyTransactions(transactions, date) {
+  const dateRegex = /^\d{4}-(0[1-9]|1[0-2])$/;
+  if (!dateRegex.test(date)) {
+    throw new Error("Invalid date format. Please use YYYY-MM format.");
+  }
+
+  const [year, month] = date.split("-");
+
+  const result = {
+    incomes: {
+      incomeTotal: 0,
+      incomesData: [],
+    },
+    expenses: {
+      expenseTotal: 0,
+      expensesData: [],
+    },
   };
 
-  const monthlyTotals = {};
-
   transactions.forEach((transaction) => {
-    const { amount, transactionType, date } = transaction;
-    const monthNumber = new Date(date).getMonth();
-    const monthName = monthNames[monthNumber];
-    if (!monthlyTotals[monthName]) {
-      monthlyTotals[monthName] = 0;
-    }
-    if (transactionType === filterTransactionType) {
-      monthlyTotals[monthName] += amount;
-    }
-  });
-  Object.keys(monthlySums).forEach((month) => {
-    if (monthlyTotals[month] !== undefined && monthlyTotals[month] !== 0) {
-      monthlySums[month] = monthlyTotals[month];
+    const transactionDate = transaction.date;
+    const transactionYearMonth = transactionDate.substring(0, 7);
+
+    console.log("Transaction Date:", transactionDate);
+    console.log("Selected Year-Month:", date);
+
+    let categoryData;
+
+    if (transactionYearMonth === date) {
+      const { amount, category, transactionType } = transaction;
+
+      if (transactionType === "income") {
+        result.incomes.incomeTotal += amount;
+
+        categoryData = incomeEnum.find((item) => item.name === category);
+        if (categoryData) {
+          const existingCategory = result.incomes.incomesData.find(
+            (item) => item.name === category
+          );
+
+          if (existingCategory) {
+            existingCategory.amount += amount;
+          } else {
+            result.incomes.incomesData.push({
+              name: category,
+              icon: categoryData.icon,
+              amount,
+            });
+          }
+        }
+      } else if (transactionType === "expense") {
+        result.expenses.expenseTotal += amount;
+
+        categoryData = expenseEnum.find((item) => item.name === category);
+        if (categoryData) {
+          const existingCategory = result.expenses.expensesData.find(
+            (item) => item.name === category
+          );
+
+          if (existingCategory) {
+            existingCategory.amount += amount;
+          } else {
+            result.expenses.expensesData.push({
+              name: category,
+              icon: categoryData.icon,
+              amount,
+            });
+          }
+        }
+      }
     }
   });
 
-  return monthlySums;
+  return result;
 }
+
+const getTransactionsDataForPeriod = async (req, res, next) => {
+  const activeUser = req.user;
+  try {
+    const userTransactions = await transactionsService.getTransactionByUser(
+      activeUser._id
+    );
+    console.log(userTransactions);
+
+    const date = req.query.date;
+
+    const report = calculateMonthlyTransactions(userTransactions, date);
+
+    return res.status(200).json({
+      status: "success",
+      code: 200,
+      data: report,
+    });
+  } catch (error) {
+    res.status(400).json({
+      status: "failure",
+      code: 400,
+      data: "Bad request (invalid 'date' format) / No token provided",
+    });
+  }
+};
 
 const getExpenseTransaction = async (req, res, _next) => {
   const activeUser = req.user;
@@ -120,7 +183,7 @@ const getExpenseTransaction = async (req, res, _next) => {
     );
     console.log(userTransactions);
 
-    const report = calculateMonthlySums(userTransactions, "expense");
+    const report = calculateMonthlyTransactions(userTransactions, "expense");
 
     const data = {
       expenses: userTransactions,
@@ -149,7 +212,7 @@ const getIncomesTransaction = async (req, res, _next) => {
       "income"
     );
 
-    const report = calculateMonthlySums(userTransactions, "income");
+    const report = calculateMonthlyTransactions(userTransactions, "income");
 
     const data = {
       incomes: userTransactions,
@@ -258,89 +321,6 @@ const getCategories = async function (req, res, _next) {
     code: 200,
     data: categories,
   });
-};
-
-function calculateMonthlyTransactions(transactions, date) {
-  const dateRegex = /^\d{4}-(0[1-9]|1[0-2])$/;
-  if (!dateRegex.test(date)) {
-    throw new Error("Invalid date format. Please use YYYY-MM format.");
-  }
-
-  const [year, month] = date.split("-");
-
-  const result = {
-    incomes: {
-      incomeTotal: 0,
-      incomesData: {},
-    },
-    expenses: {
-      expenseTotal: 0,
-      expensesData: {},
-    },
-  };
-
-  transactions.forEach((transaction) => {
-    const transactionDate = transaction.date;
-
-    const transactionYear = transactionDate.split("-")[0];
-    const transactionMonth = transactionDate.split("-")[1];
-
-    if (transactionYear === year && transactionMonth === month) {
-      const { amount, category, transactionType, description } = transaction;
-
-      if (transactionType === "income") {
-        result.incomes.incomeTotal += amount;
-        if (!result.incomes.incomesData[category]) {
-          result.incomes.incomesData[category] = { total: 0 };
-        }
-        result.incomes.incomesData[category].total += amount;
-
-        if (!result.incomes.incomesData[category][description]) {
-          result.incomes.incomesData[category][description] = 0;
-        }
-        result.incomes.incomesData[category][description] += amount;
-      } else if (transactionType === "expense") {
-        result.expenses.expenseTotal += amount;
-        if (!result.expenses.expensesData[category]) {
-          result.expenses.expensesData[category] = { total: 0 };
-        }
-        result.expenses.expensesData[category].total += amount;
-
-        if (!result.expenses.expensesData[category][description]) {
-          result.expenses.expensesData[category][description] = 0;
-        }
-        result.expenses.expensesData[category][description] += amount;
-      }
-    }
-  });
-
-  return result;
-}
-
-const getTransactionsDataForPeriod = async (req, res, next) => {
-  const activeUser = req.user;
-  try {
-    const userTransactions = await transactionsService.getTransactionByUser(
-      activeUser._id
-    );
-    console.log(userTransactions);
-
-    const date = req.query.date;
-
-    const report = calculateMonthlyTransactions(userTransactions, date);
-
-    return res.status(200).json({
-      status: "success",
-      code: 200,
-      data: report,
-    });
-  } catch (error) {
-    res.status(400).json({
-      status: "failure",
-      code: 400,
-      data: "Bad request (invalid 'date' format) / No token provided",
-    });
-  }
 };
 
 module.exports = {

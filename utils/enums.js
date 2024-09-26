@@ -1,18 +1,21 @@
 const expenseEnum = [
-  "products",
-  "alcohol",
-  "entertainment",
-  "health",
-  "transport",
-  "housing",
-  "technique",
-  "communal",
-  "sport",
-  "education",
-  "other",
+  { name: "products", icon: "products" },
+  { name: "alcohol", icon: "alcohol" },
+  { name: "entertainment", icon: "entertainment" },
+  { name: "health", icon: "health" },
+  { name: "transport", icon: "transport" },
+  { name: "housing", icon: "housing" },
+  { name: "technique", icon: "technique" },
+  { name: "communal", icon: "communal" },
+  { name: "sport", icon: "sport" },
+  { name: "education", icon: "education" },
+  { name: "other", icon: "other" },
 ];
 
-const incomeEnum = ["salary", "additional-income"];
+const incomeEnum = [
+  { name: "salary", icon: "salary" },
+  { name: "additional-income", icon: "add-income" },
+];
 
 const transactionTypeEnum = ["expense", "income"];
 

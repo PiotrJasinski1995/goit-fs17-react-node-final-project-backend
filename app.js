@@ -14,7 +14,15 @@ const app = express();
 const formatsLogger = app.get("env") === "development" ? "dev" : "short";
 
 app.use(logger(formatsLogger));
-app.use(cors());
+app.use(
+  cors({
+    // Kuba: Temporal local URL for requests from front-end
+    origin: "http://localhost:3000",
+    // Kuba: without those methods, GET changes to OPTIONS and request does not work
+    methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: false }));

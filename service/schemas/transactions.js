@@ -8,7 +8,9 @@ const {
   transactionTypeEnum,
 } = require("../../utils/enums");
 
-const categoryType = [...expenseEnum, ...incomeEnum];
+// Kuba: Extracting category names for validation in Mongoose
+const expenseCategories = expenseEnum.map((item) => item.name);
+const incomeCategories = incomeEnum.map((item) => item.name);
 
 const transactionSchema = Schema(
   {
@@ -29,9 +31,10 @@ const transactionSchema = Schema(
       type: String,
       required: [true, "Choose category for transaction"],
       enum: [
-        ...categoryType,
-        `Category must be one of the given type: ${categoryType}`,
-      ],
+        ...expenseCategories,
+        ...incomeCategories,
+        `Category must be one of the given type: ${expenseCategories}, ${incomeCategories}`,
+      ], // Kuba: needed due to changes in enums.js
     },
     transactionType: {
       type: String,
