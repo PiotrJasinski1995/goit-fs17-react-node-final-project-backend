@@ -36,12 +36,12 @@ const userSchema = new Schema(
   { versionKey: false }
 );
 
-userSchema.methods.setPassword = async function (password) {
-  this.password = await bCrypt.hash(password, 12);
+userSchema.methods.setPassword = function (password) {
+  this.password = bCrypt.hashSync(password, bCrypt.genSaltSync(12));
 };
 
-userSchema.methods.validPassword = async function (password) {
-  return await bCrypt.compare(password, this.password);
+userSchema.methods.validPassword = function (password) {
+  return bCrypt.compareSync(password, this.password);
 };
 
 const User = mongoose.model("user", userSchema);

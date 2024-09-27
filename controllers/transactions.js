@@ -118,7 +118,6 @@ const getExpenseTransaction = async (req, res, _next) => {
       activeUser._id,
       "expense"
     );
-    console.log(userTransactions);
 
     const report = calculateMonthlySums(userTransactions, "expense");
 
@@ -172,8 +171,6 @@ const getIncomesTransaction = async (req, res, _next) => {
 const deleteTransaction = async function (req, res, next) {
   const { transactionId } = req.params;
   const activeUser = req.user;
-
-  console.log(transactionId);
 
   try {
     const transaction = await transactionsService.deleteTransaction(
@@ -323,10 +320,8 @@ const getTransactionsDataForPeriod = async (req, res, next) => {
     const userTransactions = await transactionsService.getTransactionByUser(
       activeUser._id
     );
-    console.log(userTransactions);
 
     const date = req.query.date;
-
     const report = calculateMonthlyTransactions(userTransactions, date);
 
     return res.status(200).json({
