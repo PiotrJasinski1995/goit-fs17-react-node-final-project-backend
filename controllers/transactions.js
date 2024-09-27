@@ -114,7 +114,7 @@ const getExpenseTransaction = async (req, res, _next) => {
   const activeUser = req.user;
 
   try {
-    const userTransactions = await transactionsService.getTransactionByUser(
+    const userTransactions = await transactionsService.getTransactionsByUser(
       activeUser._id,
       "expense"
     );
@@ -143,7 +143,7 @@ const getIncomesTransaction = async (req, res, _next) => {
   const activeUser = req.user;
 
   try {
-    const userTransactions = await transactionsService.getTransactionByUser(
+    const userTransactions = await transactionsService.getTransactionsByUser(
       activeUser._id,
       "income"
     );
@@ -171,8 +171,31 @@ const getIncomesTransaction = async (req, res, _next) => {
 const deleteTransaction = async function (req, res, next) {
   const { transactionId } = req.params;
   const activeUser = req.user;
+  const userId = activeUser._id.toString();
 
   try {
+    const foundedTransaction = await transactionsService.getTransactionById(
+      transactionId,
+      userId
+    );
+
+    if (!foundedTransaction) {
+      return res
+        .status(404)
+        .json({ status: "failure", code: 404, message: "Not found" });
+    }
+
+    const transactionUserId = foundedTransaction.owner.toString();
+
+    if (userId !== transactionUserId) {
+      return res.status(403).json({
+        status: "failure",
+        code: 403,
+        message: "Transaction belongs to another user",
+        data: "Forbidden",
+      });
+    }
+
     const transaction = await transactionsService.deleteTransaction(
       transactionId
     );
@@ -224,7 +247,6 @@ const deleteTransaction = async function (req, res, next) {
         message: "Invalid data",
       });
     } else {
-      console.error(error);
       next(error);
     }
   }
@@ -317,7 +339,7 @@ function calculateMonthlyTransactions(transactions, date) {
 const getTransactionsDataForPeriod = async (req, res, next) => {
   const activeUser = req.user;
   try {
-    const userTransactions = await transactionsService.getTransactionByUser(
+    const userTransactions = await transactionsService.getTransactionsByUser(
       activeUser._id
     );
 
