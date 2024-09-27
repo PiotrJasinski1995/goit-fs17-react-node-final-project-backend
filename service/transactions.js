@@ -4,11 +4,15 @@ const addTransaction = (body) => {
   return Transaction.create(body);
 };
 
+const getTransactionById = (id, owner) => {
+  return Transaction.findOne({ _id: id, owner });
+};
+
 const deleteTransaction = (id) => {
   return Transaction.findByIdAndDelete({ _id: id });
 };
 
-const getTransactionByUser = async (ownerId, transactionType = null) => {
+const getTransactionsByUser = async (ownerId, transactionType = null) => {
   try {
     if (transactionType) {
       const transactions = await Transaction.find({
@@ -26,4 +30,9 @@ const getTransactionByUser = async (ownerId, transactionType = null) => {
   }
 };
 
-module.exports = { addTransaction, deleteTransaction, getTransactionByUser };
+module.exports = {
+  addTransaction,
+  getTransactionById,
+  deleteTransaction,
+  getTransactionsByUser,
+};
