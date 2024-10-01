@@ -77,7 +77,7 @@ const login = async (req, res, _next) => {
   };
 
   const accessToken = jwt.sign(payload, access_secret, {
-    expiresIn: "5m",
+    expiresIn: "50m",
   });
   const refreshToken = jwt.sign(payload, refresh_secret, {
     expiresIn: "7d",
