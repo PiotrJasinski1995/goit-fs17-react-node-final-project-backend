@@ -32,8 +32,8 @@ const corsOptions = {
   credentials: true,
 };
 app.use(cors(corsOptions));
-app.options("/api/login", cors(corsOptions));
-app.options("/api/register", cors(corsOptions));
+app.options("/auth/login", cors(corsOptions));
+app.options("/auth/register", cors(corsOptions));
 
 app.use(express.json());
 app.use(cookieParser());
