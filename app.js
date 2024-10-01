@@ -12,7 +12,11 @@ const transactionsRouter = require("./routes/api/transactions");
 const app = express();
 
 const formatsLogger = app.get("env") === "development" ? "dev" : "short";
-const allowedDomains = ["http://vercel-domain.com", "http://localhost:3000"];
+const allowedDomains = [
+  "https://kpiskorz27.github.io/",
+  "https://kapusta-front-end.vercel.app/",
+  "http://localhost:3000",
+];
 
 app.use(logger(formatsLogger));
 app.use(
