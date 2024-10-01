@@ -13,8 +13,8 @@ const app = express();
 
 const formatsLogger = app.get("env") === "development" ? "dev" : "short";
 const allowedDomains = [
-  "https://kpiskorz27.github.io/",
-  "https://kapusta-front-end.vercel.app/",
+  "https://kpiskorz27.github.io",
+  "https://kapusta-front-end.vercel.app",
   "http://localhost:3000",
 ];
 
@@ -28,7 +28,7 @@ const corsOptions = {
       callback(new Error("Not allowed by CORS"));
     }
   },
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: [
     "Content-Type",
     "Authorization",
