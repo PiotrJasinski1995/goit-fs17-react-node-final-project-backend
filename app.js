@@ -19,22 +19,22 @@ const allowedDomains = [
 ];
 
 app.use(logger(formatsLogger));
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      // bypass the requests with no origin (like curl requests, mobile apps, etc )
-      if (!origin) return callback(null, true);
 
-      if (allowedDomains.indexOf(origin) === -1) {
-        const msg = `This site ${origin} does not have an access. Only specific domains are allowed to access it.`;
-        return callback(new Error(msg), false);
-      }
-      return callback(null, true);
-    },
-    methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
-    credentials: true,
-  })
-);
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (allowedDomains.indexOf(origin) !== -1 || !origin) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  credentials: true,
+};
+app.use(cors(corsOptions));
+app.options("/api/login", cors(corsOptions));
+app.options("/api/register", cors(corsOptions));
+
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: false }));
